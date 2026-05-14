@@ -623,7 +623,289 @@
         </div>
     </main>
 
+    <!-- ── Scratch Pad ── -->
+    <div id="scratchpad">
+        <div id="scratchpad-header">
+            <span>🎨 Scratch Pad</span>
+            <div id="scratchpad-tools">
+                <button class="sp-btn" id="sp-undo" title="Undo">↩</button>
+                <button class="sp-btn" id="sp-redo" title="Redo">↪</button>
+                <button class="sp-btn" id="sp-clear" title="Clear">🗑</button>
+                <button class="sp-btn" id="sp-close" title="Close">✕</button>
+            </div>
+        </div>
+        <div id="scratchpad-colors">
+            <div class="sp-color" style="background:#e63946" data-color="#e63946"></div>
+            <div class="sp-color" style="background:#ffd93d" data-color="#ffd93d"></div>
+            <div class="sp-color" style="background:#6bcb77" data-color="#6bcb77"></div>
+            <div class="sp-color" style="background:#1e90ff" data-color="#1e90ff"></div>
+            <div class="sp-color" style="background:#a66cff" data-color="#a66cff"></div>
+            <div class="sp-color" style="background:#ff8c42" data-color="#ff8c42"></div>
+            <div class="sp-color" style="background:#e63946" data-color="#e63946"></div>
+            <div class="sp-color" style="background:#ff4757" data-color="#ff4757"></div>
+            <div class="sp-color" style="background:#ff6b9d" data-color="#ff6b9d"></div>
+            <div class="sp-color" style="background:#2c3e50" data-color="#2c3e50"></div>
+            <div class="sp-color" style="background:#fff" data-color="#ffffff"></div>
+            <div class="sp-color sp-eraser" data-color="eraser" title="Eraser">⌫</div>
+            <input type="range" id="sp-size" min="2" max="40" value="6" title="Brush Size">
+        </div>
+        <canvas id="sp-canvas"></canvas>
+    </div>
+
+    <style>
+        #scratchpad {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            background: #f8f4f0;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+            overflow: hidden;
+            width: min(700px, 90vw);
+            height: min(500px, 75vh);
+            flex-direction: column;
+            border: 3px solid #d4a373;
+        }
+        #scratchpad.open { display: flex; }
+        #scratchpad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 14px;
+            background: #d4a373;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        #scratchpad-tools { display: flex; gap: 4px; }
+        .sp-btn {
+            background: rgba(255,255,255,0.25);
+            border: none;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .sp-btn:hover { background: rgba(255,255,255,0.45); }
+
+        #scratchpad-colors {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: #ede4d8;
+            flex-wrap: wrap;
+        }
+        .sp-color {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .sp-color:hover { transform: scale(1.2); }
+        .sp-color.active { border-color: #2c3e50; transform: scale(1.2); box-shadow: 0 0 0 2px #fff; }
+        .sp-eraser {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            background: #ccc;
+            border-color: #999;
+        }
+        #sp-size {
+            width: 80px;
+            height: 4px;
+            margin-left: auto;
+            accent-color: #2c3e50;
+        }
+        #sp-canvas {
+            flex: 1;
+            background: #fff;
+            cursor: crosshair;
+            width: 100%;
+            display: block;
+        }
+        #scratchpad-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 9998;
+        }
+        #scratchpad-backdrop.open { display: block; }
+    </style>
+
+    <div id="scratchpad-backdrop"></div>
+
     <script>
+        let spCtx, spCanvas, spDrawing = false, spColor = '#e63946', spSize = 6;
+        let spHistory = [], spHistoryIdx = -1;
+        const SP_MAX_HISTORY = 40;
+
+        function spSaveState() {
+            if (!spCanvas) return;
+            spHistoryIdx++; spHistory = spHistory.slice(0, spHistoryIdx);
+            spHistory.push(spCanvas.toDataURL());
+            if (spHistory.length > SP_MAX_HISTORY) { spHistory.shift(); spHistoryIdx--; }
+        }
+
+        function spUndo() {
+            if (spHistoryIdx <= 0) return;
+            spHistoryIdx--;
+            const img = new Image();
+            img.onload = () => { spCtx.clearRect(0,0,spCanvas.width,spCanvas.height); spCtx.drawImage(img,0,0); };
+            img.src = spHistory[spHistoryIdx];
+        }
+
+        function spRedo() {
+            if (spHistoryIdx >= spHistory.length - 1) return;
+            spHistoryIdx++;
+            const img = new Image();
+            img.onload = () => { spCtx.clearRect(0,0,spCanvas.width,spCanvas.height); spCtx.drawImage(img,0,0); };
+            img.src = spHistory[spHistoryIdx];
+        }
+
+        function spClear() { spCtx.clearRect(0,0,spCanvas.width,spCanvas.height); spSaveState(); }
+
+        function spResize() {
+            const rect = document.getElementById('scratchpad').getBoundingClientRect();
+            const header = document.getElementById('scratchpad-header').offsetHeight;
+            const colors = document.getElementById('scratchpad-colors').offsetHeight;
+            spCanvas.width = spCanvas.clientWidth;
+            spCanvas.height = spCanvas.clientHeight;
+            if (spHistory.length > 0) {
+                const img = new Image();
+                img.onload = () => { spCtx.drawImage(img,0,0); };
+                img.src = spHistory[spHistoryIdx];
+            }
+        }
+
+        function openScratchpad() {
+            document.getElementById('scratchpad').classList.add('open');
+            document.getElementById('scratchpad-backdrop').classList.add('open');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                spCanvas = document.getElementById('sp-canvas');
+                spCtx = spCanvas.getContext('2d');
+                spResize();
+                spSaveState();
+            }, 50);
+        }
+
+        function closeScratchpad() {
+            document.getElementById('scratchpad').classList.remove('open');
+            document.getElementById('scratchpad-backdrop').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Open on palette click
+            document.querySelector('.palette-container').addEventListener('click', openScratchpad);
+            // Backdrop close
+            document.getElementById('scratchpad-backdrop').addEventListener('click', closeScratchpad);
+            // Close button
+            document.getElementById('sp-close').addEventListener('click', closeScratchpad);
+            // Clear
+            document.getElementById('sp-clear').addEventListener('click', () => { spClear(); });
+            // Undo/Redo
+            document.getElementById('sp-undo').addEventListener('click', spUndo);
+            document.getElementById('sp-redo').addEventListener('click', spRedo);
+
+            // Color selection
+            document.querySelectorAll('.sp-color').forEach(el => {
+                el.addEventListener('click', () => {
+                    document.querySelectorAll('.sp-color').forEach(c => c.classList.remove('active'));
+                    el.classList.add('active');
+                    if (el.dataset.color === 'eraser') {
+                        spColor = 'eraser';
+                    } else {
+                        spColor = el.dataset.color;
+                    }
+                });
+            });
+            // Default: first color active
+            document.querySelector('.sp-color').classList.add('active');
+
+            // Brush size
+            document.getElementById('sp-size').addEventListener('input', (e) => { spSize = e.target.value; });
+
+            // Canvas drawing
+            document.addEventListener('mousedown', (e) => {
+                if (e.target && e.target.id === 'sp-canvas') {
+                    spDrawing = true;
+                    const rect = spCanvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const scaleX = spCanvas.width / rect.width;
+                    const scaleY = spCanvas.height / rect.height;
+                    spCtx.beginPath();
+                    spCtx.moveTo(x * scaleX, y * scaleY);
+                }
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (!spDrawing) return;
+                const rect = spCanvas.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (spCanvas.width / rect.width);
+                const y = (e.clientY - rect.top) * (spCanvas.height / rect.height);
+                spCtx.lineWidth = spSize;
+                spCtx.lineCap = 'round';
+                spCtx.lineJoin = 'round';
+                spCtx.strokeStyle = spColor === 'eraser' ? '#ffffff' : spColor;
+                spCtx.globalCompositeOperation = spColor === 'eraser' ? 'destination-out' : 'source-over';
+                spCtx.lineTo(x, y);
+                spCtx.stroke();
+                spCtx.beginPath();
+                spCtx.moveTo(x, y);
+            });
+            document.addEventListener('mouseup', () => {
+                if (spDrawing) { spDrawing = false; spCtx.beginPath(); spCtx.globalCompositeOperation = 'source-over'; spSaveState(); }
+            });
+            document.addEventListener('mouseleave', () => {
+                if (spDrawing) { spDrawing = false; spCtx.beginPath(); spCtx.globalCompositeOperation = 'source-over'; spSaveState(); }
+            });
+
+            // Touch support
+            document.addEventListener('touchstart', (e) => {
+                if (e.target && e.target.id === 'sp-canvas') {
+                    e.preventDefault();
+                    spDrawing = true;
+                    const rect = spCanvas.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    const x = (touch.clientX - rect.left) * (spCanvas.width / rect.width);
+                    const y = (touch.clientY - rect.top) * (spCanvas.height / rect.height);
+                    spCtx.beginPath();
+                    spCtx.moveTo(x, y);
+                }
+            }, { passive: false });
+            document.addEventListener('touchmove', (e) => {
+                if (!spDrawing) return;
+                e.preventDefault();
+                const rect = spCanvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = (touch.clientX - rect.left) * (spCanvas.width / rect.width);
+                const y = (touch.clientY - rect.top) * (spCanvas.height / rect.height);
+                spCtx.lineWidth = spSize;
+                spCtx.lineCap = 'round';
+                spCtx.strokeStyle = spColor === 'eraser' ? '#ffffff' : spColor;
+                spCtx.globalCompositeOperation = spColor === 'eraser' ? 'destination-out' : 'source-over';
+                spCtx.lineTo(x, y);
+                spCtx.stroke();
+                spCtx.beginPath();
+                spCtx.moveTo(x, y);
+            }, { passive: false });
+            document.addEventListener('touchend', (e) => {
+                if (spDrawing) { spDrawing = false; spCtx.beginPath(); spCtx.globalCompositeOperation = 'source-over'; spSaveState(); }
+            });
+        });
+
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
