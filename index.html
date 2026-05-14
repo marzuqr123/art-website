@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artistry — The World Through Color</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #87CEEB;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ── Paint Splashes ── */
+        .splash {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            border-radius: 50%;
+            opacity: 0.35;
+        }
+        .splash1 {
+            width: 300px; height: 280px;
+            background: radial-gradient(circle, #ff6b9d 0%, transparent 70%);
+            top: -60px; left: -80px;
+            transform: rotate(-15deg);
+        }
+        .splash2 {
+            width: 200px; height: 180px;
+            background: radial-gradient(circle, #ffd93d 0%, transparent 70%);
+            bottom: 10%; right: -40px;
+        }
+        .splash3 {
+            width: 250px; height: 200px;
+            background: radial-gradient(circle, #6bcb77 0%, transparent 70%);
+            bottom: -50px; left: 20%;
+            transform: rotate(20deg);
+        }
+        .splash4 {
+            width: 180px; height: 160px;
+            background: radial-gradient(circle, #a66cff 0%, transparent 70%);
+            top: 30%; left: 85%;
+        }
+        .splash5 {
+            width: 220px; height: 190px;
+            background: radial-gradient(circle, #ff8c42 0%, transparent 70%);
+            top: 60%; left: -60px;
+        }
+        .splash6 {
+            width: 140px; height: 120px;
+            background: radial-gradient(circle, #ff4757 0%, transparent 70%);
+            top: 10%; left: 40%;
+        }
+        .splash7 {
+            width: 100px; height: 90px;
+            background: radial-gradient(circle, #ff6b6b 0%, transparent 70%);
+            bottom: 30%; right: 20%;
+        }
+        .splash8 {
+            width: 160px; height: 150px;
+            background: radial-gradient(circle, #ff8c42 0%, transparent 70%);
+            top: 70%; right: 10%;
+        }
+
+        /* ── Paint Palette ── */
+        .palette-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.15));
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .palette-container:hover { transform: translateX(-50%) scale(1.05); }
+
+        .palette {
+            width: 220px;
+            height: 70px;
+            background: #d4a373;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            position: relative;
+            border: 3px solid #b8835a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 20px;
+        }
+        .palette::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 12px;
+            background: #d4a373;
+            border-radius: 50%;
+            border: 3px solid #b8835a;
+            border-bottom: none;
+        }
+        .palette-color {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.4);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .palette-color:hover { transform: scale(1.3); }
+        .c1 { background: #e63946; }
+        .c2 { background: #ffd93d; }
+        .c3 { background: #6bcb77; }
+        .c4 { background: #1e90ff; }
+        .c5 { background: #a66cff; }
+        .c6 { background: #ff8c42; }
+
+        /* ── Paint Brush ── */
+        .brush {
+            position: fixed;
+            top: 100px;
+            right: 40px;
+            z-index: 50;
+            transform: rotate(25deg);
+            animation: brushSway 4s ease-in-out infinite;
+        }
+        @keyframes brushSway {
+            0%, 100% { transform: rotate(25deg); }
+            50% { transform: rotate(35deg); }
+        }
+        .brush-handle {
+            width: 8px;
+            height: 80px;
+            background: linear-gradient(to right, #c4956a, #a07654);
+            border-radius: 2px;
+            margin: 0 auto;
+        }
+        .brush-ferrule {
+            width: 14px;
+            height: 16px;
+            background: linear-gradient(to right, #b0b0b0, #d4d4d4);
+            border-radius: 2px;
+            margin: 0 auto;
+        }
+        .brush-bristles {
+            width: 24px;
+            height: 28px;
+            background: linear-gradient(to bottom, #e8d5b7 0%, #d4a373 100%);
+            border-radius: 50% 50% 40% 40%;
+            margin: 0 auto;
+            position: relative;
+            border-bottom: 3px solid #a66cff;
+        }
+        .brush-bristles::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 2px;
+            width: 20px;
+            height: 10px;
+            background: #a66cff;
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+        .brush-drip {
+            position: absolute;
+            bottom: -15px;
+            left: 10px;
+            width: 4px;
+            height: 12px;
+            background: #a66cff;
+            border-radius: 0 0 4px 4px;
+            opacity: 0.5;
+            animation: drip 3s ease-in-out infinite;
+        }
+        @keyframes drip {
+            0%, 70% { height: 12px; opacity: 0.5; }
+            85% { height: 20px; opacity: 0.7; }
+            100% { height: 12px; opacity: 0.5; }
+        }
+
+        /* ── Navigation ── */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255,255,255,0.75);
+            border-bottom: 1px solid rgba(255,255,255,0.6);
+            z-index: 200;
+            padding: 0 2rem;
+        }
+        .nav-inner {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 65px;
+        }
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #e63946, #ffd93d, #6bcb77, #1e90ff, #a66cff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+        .nav-links {
+            display: flex;
+            gap: 0.3rem;
+            list-style: none;
+        }
+        .nav-links li a {
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        .nav-links li a:hover,
+        .nav-links li a.active {
+            background: rgba(255,255,255,0.5);
+            border-color: rgba(255,255,255,0.6);
+            transform: translateY(-2px);
+        }
+
+        /* ── Main ── */
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 90px 2rem 4rem;
+        }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeUp 0.5s ease; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: rgba(255,255,255,0.85);
+            border-radius: 24px;
+            padding: 2.5rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+            margin-bottom: 2rem;
+        }
+        .page-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 0.3rem;
+            background: linear-gradient(135deg, #2c3e50, #1e90ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .page-sub {
+            font-size: 1.1rem;
+            color: #34495e;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+        .card h2 {
+            font-size: 1.6rem;
+            margin-bottom: 0.8rem;
+            color: #2c3e50;
+        }
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.4rem;
+            color: #2c3e50;
+        }
+        .card p {
+            line-height: 1.8;
+            color: #34495e;
+            margin-bottom: 1rem;
+        }
+        .card .meta {
+            font-size: 0.85rem;
+            color: #5d7a9a;
+            margin-bottom: 0.3rem;
+        }
+
+        /* ── Grids ── */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
+
+        .person-card, .masterpiece-card, .achievement-card {
+            background: rgba(255,255,255,0.85);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.4);
+            transition: all 0.3s;
+        }
+        .person-card:hover, .masterpiece-card:hover, .achievement-card:hover {
+            transform: translateY(-6px);
+            background: rgba(255,255,255,0.45);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        }
+        .person-card .icon, .masterpiece-card .icon, .achievement-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.7rem;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .person-card h3, .masterpiece-card h3, .achievement-card h3 {
+            font-size: 1.1rem;
+        }
+        .person-card p, .masterpiece-card p, .achievement-card p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* ── Blog post ── */
+        .blog-post { margin-bottom: 2rem; }
+        .blog-post h2 { cursor: pointer; }
+        .blog-post h2:hover { color: #1e90ff; }
+        .blog-body { display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.08); }
+        .blog-body.open { display: block; }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .nav-links { gap: 0.1rem; }
+            .nav-links li a { font-size: 0.75rem; padding: 0.4rem 0.6rem; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .page-title { font-size: 2rem; }
+            .card { padding: 1.5rem; }
+            .palette { width: 180px; height: 60px; }
+            .palette-color { width: 22px; height: 22px; }
+        }
+        .card-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            background: #b8dff0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Paint Splashes -->
+    <div class="splash splash1"></div>
+    <div class="splash splash2"></div>
+    <div class="splash splash3"></div>
+    <div class="splash splash4"></div>
+    <div class="splash splash5"></div>
+    <div class="splash splash6"></div>
+    <div class="splash splash7"></div>
+    <div class="splash splash8"></div>
+
+    <!-- Paint Brush -->
+    <div class="brush">
+        <div class="brush-bristles">
+            <div class="brush-drip"></div>
+        </div>
+        <div class="brush-ferrule"></div>
+        <div class="brush-handle"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-inner">
+            <div class="logo" onclick="showPage('art')">&#127912; Artistry</div>
+            <ul class="nav-links">
+                <li><a href="#" onclick="showPage('art')" class="nav-link active">Art</a></li>
+                <li><a href="#" onclick="showPage('people')" class="nav-link">Famous People</a></li>
+                <li><a href="#" onclick="showPage('blog')" class="nav-link">Blog</a></li>
+                <li><a href="#" onclick="showPage('masterpieces')" class="nav-link">Masterpieces</a></li>
+                <li><a href="#" onclick="showPage('achievements')" class="nav-link">Achievements</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Paint Palette -->
+    <div class="palette-container" title="Pick a color">
+        <div class="palette">
+            <div class="palette-color c1"></div>
+            <div class="palette-color c2"></div>
+            <div class="palette-color c3"></div>
+            <div class="palette-color c4"></div>
+            <div class="palette-color c5"></div>
+            <div class="palette-color c6"></div>
+        </div>
+    </div>
+
+    <main>
+        <!-- ===== ART ===== -->
+        <div id="art" class="page active">
+            <div class="card" style="text-align:center;padding:4rem 2.5rem;">
+                <div style="font-size:4rem;margin-bottom:1rem;">&#127912;</div>
+                <h1 class="page-title">Art Is Creativity</h1>
+                <p class="page-sub" style="max-width:600px;margin:0 auto 1.5rem;">
+                    Creativity is the courage to make something new from the ordinary.
+                </p>
+                <div style="max-width:680px;margin:0 auto;text-align:left;">
+                    <p>Creativity is not about being the best — it's about being willing to try. It's the spark that turns a blank canvas into a world, a lump of clay into a story, a whisper of an idea into something you can hold.</p>
+                    <p>Every child is born creative. The trick is staying that way as you grow. It's losing the fear of being wrong. It's understanding that every masterpiece was once a sketch, every symphony was once a silence, every great artist was once a beginner who never gave up.</p>
+                    <p style="font-style:italic;text-align:center;font-size:0.95rem;">
+                        "Creativity takes courage." — Henri Matisse
+                    </p>
+                    <p>Art doesn't have to be in a museum. It's in the way you arrange flowers, write an email, cook a meal, tell a joke. Creativity is everywhere you choose to make something personal. The world doesn't need more perfection. It needs more of <em>you</em>.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== FAMOUS PEOPLE ===== -->
+        <div id="people" class="page">
+            <div class="card">
+                <h1 class="page-title">Famous People</h1>
+                <p class="page-sub">The artists who changed how we see the world.</p>
+                <div class="grid-2">
+                    <div class="person-card">
+                        <img class="card-img" src="https://placehold.co/500x280/e63946/ffffff?text=Pablo+Picasso&font=raleway" alt="Pablo Picasso" loading="lazy">
+                        <div class="card-body">
+                            <h3>Pablo Picasso</h3>
+                            <p><strong>1881–1973</strong> &middot; Spanish</p>
+                            <p>Co-founder of Cubism, Picasso shattered perspective and rebuilt it from every angle at once. His Blue Period, Rose Period, and the groundbreaking <em>Les Demoiselles d'Avignon</em> rewrote the rules of modern art.</p>
+                        </div>
+                    </div>
+                    <div class="person-card">
+                        <img class="card-img" src="https://placehold.co/500x280/6bcb77/ffffff?text=Frida+Kahlo&font=raleway" alt="Frida Kahlo" loading="lazy">
+                        <div class="card-body">
+                            <h3>Frida Kahlo</h3>
+                            <p><strong>1907–1954</strong> &middot; Mexican</p>
+                            <p>Known for her raw self-portraits that blended reality, pain, and Mexican folk art. Kahlo turned her suffering into some of the most unflinchingly honest art ever made.</p>
+                        </div>
+                    </div>
+                    <div class="person-card">
+                        <img class="card-img" src="https://placehold.co/500x280/a66cff/ffffff?text=Leonardo+da+Vinci&font=raleway" alt="Leonardo da Vinci" loading="lazy">
+                        <div class="card-body">
+                            <h3>Leonardo da Vinci</h3>
+                            <p><strong>1452–1519</strong> &middot; Italian</p>
+                            <p>The original Renaissance man. Painter, inventor, anatomist — da Vinci's <em>Mona Lisa</em> and <em>The Last Supper</em> remain the most recognized paintings on Earth.</p>
+                        </div>
+                    </div>
+                    <div class="person-card">
+                        <img class="card-img" src="https://placehold.co/500x280/ffd93d/2c3e50?text=Vincent+van+Gogh&font=raleway" alt="Vincent van Gogh" loading="lazy">
+                        <div class="card-body">
+                            <h3>Vincent van Gogh</h3>
+                            <p><strong>1853–1890</strong> &middot; Dutch</p>
+                            <p>Sold only one painting in his lifetime, yet became one of the most beloved artists in history. His swirling brushstrokes and bold colors in <em>Starry Night</em> changed painting forever.</p>
+                        </div>
+                    </div>
+                    <div class="person-card">
+                        <img class="card-img" src="https://placehold.co/500x280/ff6b9d/ffffff?text=Georgia+O%27Keeffe&font=raleway" alt="Georgia O'Keeffe" loading="lazy">
+                        <div class="card-body">
+                            <h3>Georgia O'Keeffe</h3>
+                            <p><strong>1887–1986</strong> &middot; American</p>
+                            <p>Mother of American modernism. Her large-scale flower paintings and desert landscapes captured the vastness and intimacy of the natural world.</p>
+                        </div>
+                    </div>
+                    <div class="person-card">
+                        <img class="card-img" src="https://placehold.co/500x280/1e90ff/ffffff?text=Claude+Monet&font=raleway" alt="Claude Monet" loading="lazy">
+                        <div class="card-body">
+                            <h3>Claude Monet</h3>
+                            <p><strong>1840–1926</strong> &middot; French</p>
+                            <p>Founder of French Impressionism. Monet painted the same haystacks, cathedrals, and water lilies over and over — chasing the light until it changed everything.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== BLOG ===== -->
+        <div id="blog" class="page">
+            <div class="card">
+                <h1 class="page-title">Blog</h1>
+                <p class="page-sub">Thoughts on art, creativity, and the creative life.</p>
+
+                <div class="blog-post">
+                    <h2 onclick="toggleBlog(this)">The Eternal Dialogue: Why Art Matters &nbsp;&#9660;</h2>
+                    <div class="blog-body open">
+                        <p>Art is not a luxury. It is a language older than words, a mirror held up to the human condition.</p>
+                        <p>From the ochre handprints on cave walls at Lascaux to a glitchy NFT on a digital screen, every era finds its medium. What stays constant is the impulse: to make meaning, to leave a mark, to say, <em>I was here, and this is what I saw.</em></p>
+                        <p>Art asks nothing practical of you. It does not file your taxes or cook your dinner. Instead, it does something rarer: it slows you down. In a world optimized for speed, a painting demands stillness. A poem asks you to read the same line twice.</p>
+                        <p>The best art unsettles. It refuses easy answers. Rothko's vast rectangles don't tell you what to feel — they make a space for whatever feeling arrives. That ambiguity is not a weakness; it is the point. Art is where we practice holding complexity.</p>
+                        <p>We need that practice now more than ever.</p>
+                        <p>To make art is to fail on your own terms, then try again. To see art is to meet another mind across time and space. Both acts remind us that we are alive, that we are not alone, and that there is still beauty worth making.</p>
+                    </div>
+                </div>
+
+                <div class="blog-post">
+                    <h2 onclick="toggleBlog(this)">Why Every Artist Should Make "Bad" Art &nbsp;&#9654;</h2>
+                    <div class="blog-body">
+                        <p>Here's a secret: every great artist has made hundreds of bad paintings, terrible drawings, and failed experiments. The only difference between them and everyone else is that they kept going.</p>
+                        <p>"Bad" art is not a failure. It's practice. It's the permission slip you give yourself to explore without judgment. The fear of making something ugly is the single biggest thing that stops people from making anything at all.</p>
+                        <p>So go ahead. Make something bad today. It might turn out to be the best thing you ever do.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== MASTERPIECES ===== -->
+        <div id="masterpieces" class="page">
+            <div class="card">
+                <h1 class="page-title">Masterpieces</h1>
+                <p class="page-sub">Works that changed the way we see the world.</p>
+                <div class="grid-2">
+                    <div class="masterpiece-card">
+                        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa,_by_Leonardo_da_Vinci,_from_C2RMF_retouched.jpg/500px-Mona_Lisa,_by_Leonardo_da_Vinci,_from_C2RMF_retouched.jpg" alt="Mona Lisa" loading="lazy">
+                        <div class="card-body">
+                            <h3>Mona Lisa</h3>
+                            <p><strong>Leonardo da Vinci</strong> &middot; 1503&ndash;1519 &middot; Louvre, Paris</p>
+                            <p>The most famous painting in the world. Her enigmatic smile has captivated viewers for five centuries. The painting introduced sfumato — a technique of soft, smoky transitions between colors — that revolutionized portraiture.</p>
+                        </div>
+                    </div>
+                    <div class="masterpiece-card">
+                        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/500px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg" alt="Starry Night" loading="lazy">
+                        <div class="card-body">
+                            <h3>Starry Night</h3>
+                            <p><strong>Vincent van Gogh</strong> &middot; 1889 &middot; MoMA, New York</p>
+                            <p>Painted from memory while van Gogh was in an asylum, this swirling vision of the night sky is the ultimate expression of emotion through color and brushwork. He considered it a failure — the world disagrees.</p>
+                        </div>
+                    </div>
+                    <div class="masterpiece-card">
+                        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/en/thumb/d/dd/The_Persistence_of_Memory.jpg/500px-The_Persistence_of_Memory.jpg" alt="The Persistence of Memory" loading="lazy">
+                        <div class="card-body">
+                            <h3>The Persistence of Memory</h3>
+                            <p><strong>Salvador Dal&iacute;</strong> &middot; 1931 &middot; MoMA, New York</p>
+                            <p>The melting clocks that defined Surrealism. Dal&iacute;'s dreamlike landscape captures the softness of time itself — a meditation on memory, relativity, and the subconscious mind.</p>
+                        </div>
+                    </div>
+                    <div class="masterpiece-card">
+                        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Claude_Monet_-_Water_Lilies,_1916.jpg/500px-Claude_Monet_-_Water_Lilies,_1916.jpg" alt="Water Lilies" loading="lazy">
+                        <div class="card-body">
+                            <h3>Water Lilies (Nymph&eacute;as)</h3>
+                            <p><strong>Claude Monet</strong> &middot; 1897&ndash;1926 &middot; Orangerie, Paris</p>
+                            <p>A series of approximately 250 paintings of Monet's garden in Giverny. The immersive panels at the Orangerie wrap around the viewer — you don't just see them, you enter them.</p>
+                        </div>
+                    </div>
+                    <div class="masterpiece-card">
+                        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/en/thumb/7/74/PicassoGuernica.jpg/500px-PicassoGuernica.jpg" alt="Guernica" loading="lazy">
+                        <div class="card-body">
+                            <h3>Guernica</h3>
+                            <p><strong>Pablo Picasso</strong> &middot; 1937 &middot; Museo Reina Sof&iacute;a, Madrid</p>
+                            <p>Picasso's monumental response to the bombing of Guernica during the Spanish Civil War. Rendered in black, white, and gray, it remains the most powerful anti-war painting ever created.</p>
+                        </div>
+                    </div>
+                    <div class="masterpiece-card">
+                        <img class="card-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Girl_with_a_Pearl_Earring.jpg/500px-Girl_with_a_Pearl_Earring.jpg" alt="Girl with a Pearl Earring" loading="lazy">
+                        <div class="card-body">
+                            <h3>Girl with a Pearl Earring</h3>
+                            <p><strong>Johannes Vermeer</strong> &middot; c. 1665 &middot; Mauritshuis, The Hague</p>
+                            <p>The "Mona Lisa of the North." Vermeer's mastery of light and the subject's direct gaze create an intimacy that feels alive. Almost nothing is known about the girl — and that's part of the magic.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ACHIEVEMENTS ===== -->
+        <div id="achievements" class="page">
+            <div class="card">
+                <h1 class="page-title">Achievements</h1>
+                <p class="page-sub">The highest honors in the world of art.</p>
+                <div class="grid-3">
+                    <div class="achievement-card">
+                        <div class="card-body">
+                            <div class="icon">&#127942;</div>
+                            <h3>Turner Prize</h3>
+                            <p style="font-size:0.8rem;color:#5d7a9a;margin-bottom:0.5rem;">Est. 1984 &middot; United Kingdom</p>
+                            <p>Awarded annually to a British visual artist under 50. It has launched the careers of Damien Hirst, Steve McQueen, and Rachel Whiteread. Known for celebrating bold, conceptual, and often controversial work.</p>
+                        </div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="card-body">
+                            <div class="icon">&#127775;</div>
+                            <h3>Venice Biennale Golden Lion</h3>
+                            <p style="font-size:0.8rem;color:#5d7a9a;margin-bottom:0.5rem;">Est. 1895 &middot; Italy</p>
+                            <p>The oldest and most prestigious art exhibition in the world. The Golden Lion is awarded to the best national pavilion and the best artist — the highest honor in contemporary art.</p>
+                        </div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="card-body">
+                            <div class="icon">&#127993;</div>
+                            <h3>Praemium Imperiale</h3>
+                            <p style="font-size:0.8rem;color:#5d7a9a;margin-bottom:0.5rem;">Est. 1988 &middot; Japan</p>
+                            <p>Often called the "Nobel Prize of the Arts." Awarded by the Japan Art Association in five categories: Painting, Sculpture, Architecture, Music, and Theatre/Film. Laureates receive 15 million yen.</p>
+                        </div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="card-body">
+                            <div class="icon">&#128220;</div>
+                            <h3>MacArthur Fellowship</h3>
+                            <p style="font-size:0.8rem;color:#5d7a9a;margin-bottom:0.5rem;">Est. 1981 &middot; United States</p>
+                            <p>The "Genius Grant." Artists across all disciplines receive $800,000 with no strings attached — just the freedom to create. Past visual art recipients include Kara Walker, Kerry James Marshall, and Matthew Barney.</p>
+                        </div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="card-body">
+                            <div class="icon">&#128142;</div>
+                            <h3>Wolf Prize in Arts</h3>
+                            <p style="font-size:0.8rem;color:#5d7a9a;margin-bottom:0.5rem;">Est. 1981 &middot; Israel</p>
+                            <p>Recognizes outstanding artists who have made revolutionary contributions. Winners include Marc Chagall, Eduardo Chillida, and Anselm Kiefer. Recipients receive a $100,000 award.</p>
+                        </div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="card-body">
+                            <div class="icon">&#127866;</div>
+                            <h3>Stirling Prize</h3>
+                            <p style="font-size:0.8rem;color:#5d7a9a;margin-bottom:0.5rem;">Est. 1996 &middot; United Kingdom</p>
+                            <p>Britain's top architecture award. Given by the Royal Institute of British Architects to the building that has made the greatest contribution to the architectural landscape in the past year.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            const map = { art:'Art', people:'Famous People', blog:'Blog', masterpieces:'Masterpieces', achievements:'Achievements' };
+            document.querySelectorAll('.nav-link').forEach(l => {
+                if (l.textContent === map[pageId]) l.classList.add('active');
+            });
+        }
+
+        function toggleBlog(el) {
+            const body = el.nextElementSibling;
+            body.classList.toggle('open');
+            el.innerHTML = body.classList.contains('open')
+                ? el.innerHTML.replace('&#9654;', '&#9660;')
+                : el.innerHTML.replace('&#9660;', '&#9654;');
+        }
+    </script>
+</body>
+</html>
